@@ -48,7 +48,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
 
       if (error) throw error;
-      setUserProfile(data);
+      
+      // Type assertion para garantir que tipo_usuario seja do tipo correto
+      const profileData: UserProfile = {
+        id: data.id,
+        email: data.email,
+        nome: data.nome,
+        tipo_usuario: data.tipo_usuario as 'admin' | 'usuario',
+        peticoes_usadas: data.peticoes_usadas || 0
+      };
+      
+      setUserProfile(profileData);
     } catch (error) {
       console.error('Erro ao buscar perfil do usuário:', error);
     }

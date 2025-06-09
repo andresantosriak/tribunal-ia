@@ -63,7 +63,19 @@ const AdminUsers = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setUsers(data || []);
+      
+      // Type assertion para garantir que os dados sejam do tipo correto
+      const usersData: Usuario[] = (data || []).map(user => ({
+        id: user.id,
+        email: user.email,
+        nome: user.nome,
+        tipo_usuario: user.tipo_usuario as 'admin' | 'usuario',
+        peticoes_usadas: user.peticoes_usadas || 0,
+        created_at: user.created_at,
+        updated_at: user.updated_at
+      }));
+      
+      setUsers(usersData);
     } catch (error) {
       console.error('Erro ao buscar usuários:', error);
       toast({

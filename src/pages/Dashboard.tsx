@@ -44,7 +44,18 @@ const Dashboard = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setCasos(data || []);
+      
+      // Type assertion para garantir que o id seja string
+      const casesData: Caso[] = (data || []).map(caso => ({
+        id: caso.id.toString(),
+        caso_id: caso.caso_id,
+        texto_original: caso.texto_original,
+        status: caso.status || 'processando',
+        created_at: caso.created_at,
+        completed_at: caso.completed_at
+      }));
+      
+      setCasos(casesData);
     } catch (error) {
       console.error('Error fetching cases:', error);
       toast({
