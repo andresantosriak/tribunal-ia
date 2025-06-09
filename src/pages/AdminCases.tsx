@@ -37,7 +37,7 @@ import { Search, Eye, Trash2, Download, FileText } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface CasoWithUser {
-  id: string;
+  id: number;
   caso_id: string;
   texto_original: string;
   status: string;
@@ -72,7 +72,7 @@ const AdminCases = () => {
       if (error) throw error;
       setCases(data || []);
     } catch (error) {
-      console.error('Error fetching cases:', error);
+      console.error('Erro ao buscar casos:', error);
       toast({
         title: "Erro",
         description: "Não foi possível carregar os casos",
@@ -83,15 +83,15 @@ const AdminCases = () => {
     }
   };
 
-  const deleteCase = async (caseId: string, casoId: string) => {
+  const deleteCase = async (caseId: number, casoId: string) => {
     try {
-      // Delete related data first
+      // Deletar dados relacionados primeiro
       await supabase.from('relatorios_melhorias').delete().eq('caso_id', casoId);
       await supabase.from('sentencas').delete().eq('caso_id', casoId);
       await supabase.from('historico_interacoes').delete().eq('caso_id', casoId);
       await supabase.from('analises_iniciais').delete().eq('caso_id', casoId);
       
-      // Delete main case
+      // Deletar caso principal
       const { error } = await supabase
         .from('casos')
         .delete()
@@ -106,7 +106,7 @@ const AdminCases = () => {
 
       await fetchCases();
     } catch (error) {
-      console.error('Error deleting case:', error);
+      console.error('Erro ao deletar caso:', error);
       toast({
         title: "Erro",
         description: "Não foi possível deletar o caso",
@@ -156,9 +156,9 @@ const AdminCases = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'processando':
-        return <Badge className="status-processing">Processando</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-800">Processando</Badge>;
       case 'concluido':
-        return <Badge className="status-completed">Concluído</Badge>;
+        return <Badge className="bg-green-100 text-green-800">Concluído</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -178,7 +178,7 @@ const AdminCases = () => {
   return (
     <AdminLayout title="Gestão de Casos">
       <div className="space-y-6">
-        {/* Filters and Actions */}
+        {/* Filtros e Ações */}
         <Card className="card-legal">
           <CardHeader>
             <CardTitle className="flex justify-between items-center">
@@ -216,7 +216,7 @@ const AdminCases = () => {
           </CardContent>
         </Card>
 
-        {/* Cases Table */}
+        {/* Tabela de Casos */}
         <Card className="card-legal">
           <CardHeader>
             <CardTitle>

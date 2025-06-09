@@ -58,6 +58,7 @@ export type Database = {
           id: number
           status: string | null
           texto_original: string
+          usuario_id: string | null
         }
         Insert: {
           caso_id: string
@@ -66,6 +67,7 @@ export type Database = {
           id?: number
           status?: string | null
           texto_original: string
+          usuario_id?: string | null
         }
         Update: {
           caso_id?: string
@@ -74,6 +76,39 @@ export type Database = {
           id?: number
           status?: string | null
           texto_original?: string
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "casos_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      configuracoes: {
+        Row: {
+          created_at: string | null
+          id: number
+          max_peticoes_usuario: number | null
+          updated_at: string | null
+          webhook_url: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          max_peticoes_usuario?: number | null
+          updated_at?: string | null
+          webhook_url?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          max_peticoes_usuario?: number | null
+          updated_at?: string | null
+          webhook_url?: string | null
         }
         Relationships: []
       }
@@ -112,6 +147,38 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "casos"
             referencedColumns: ["caso_id"]
+          },
+        ]
+      }
+      logs_uso: {
+        Row: {
+          acao: string | null
+          caso_id: string | null
+          id: number
+          timestamp_acao: string | null
+          usuario_id: string | null
+        }
+        Insert: {
+          acao?: string | null
+          caso_id?: string | null
+          id?: number
+          timestamp_acao?: string | null
+          usuario_id?: string | null
+        }
+        Update: {
+          acao?: string | null
+          caso_id?: string | null
+          id?: number
+          timestamp_acao?: string | null
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "logs_uso_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -175,6 +242,36 @@ export type Database = {
             referencedColumns: ["caso_id"]
           },
         ]
+      }
+      usuarios: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          nome: string
+          peticoes_usadas: number | null
+          tipo_usuario: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          nome: string
+          peticoes_usadas?: number | null
+          tipo_usuario?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          nome?: string
+          peticoes_usadas?: number | null
+          tipo_usuario?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
     }
     Views: {

@@ -54,12 +54,12 @@ const AdminLogs = () => {
           usuario:usuarios(nome, email)
         `)
         .order('timestamp_acao', { ascending: false })
-        .limit(500); // Limit to last 500 logs
+        .limit(500); // Limitar aos últimos 500 logs
 
       if (error) throw error;
       setLogs(data || []);
     } catch (error) {
-      console.error('Error fetching logs:', error);
+      console.error('Erro ao buscar logs:', error);
       toast({
         title: "Erro",
         description: "Não foi possível carregar os logs",
@@ -101,11 +101,11 @@ const AdminLogs = () => {
   };
 
   const filteredLogs = logs.filter(log => {
-    const matchesSearch = log.acao.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = log.acao?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          log.caso_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          log.usuario?.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          log.usuario?.email?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filterAction === 'all' || log.acao.toLowerCase().includes(filterAction.toLowerCase());
+    const matchesFilter = filterAction === 'all' || log.acao?.toLowerCase().includes(filterAction.toLowerCase());
     return matchesSearch && matchesFilter;
   });
 
@@ -151,7 +151,7 @@ const AdminLogs = () => {
   return (
     <AdminLayout title="Logs do Sistema">
       <div className="space-y-6">
-        {/* Filters */}
+        {/* Filtros */}
         <Card className="card-legal">
           <CardHeader>
             <CardTitle>Filtros</CardTitle>
@@ -186,7 +186,7 @@ const AdminLogs = () => {
           </CardContent>
         </Card>
 
-        {/* Stats */}
+        {/* Estatísticas */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="card-legal">
             <CardContent className="p-4">
@@ -207,7 +207,7 @@ const AdminLogs = () => {
                 <div>
                   <p className="text-sm text-gray-600">Logins</p>
                   <p className="text-2xl font-bold">
-                    {logs.filter(log => log.acao.toLowerCase() === 'login').length}
+                    {logs.filter(log => log.acao?.toLowerCase() === 'login').length}
                   </p>
                 </div>
               </div>
@@ -221,7 +221,7 @@ const AdminLogs = () => {
                 <div>
                   <p className="text-sm text-gray-600">Petições</p>
                   <p className="text-2xl font-bold">
-                    {logs.filter(log => log.acao.toLowerCase() === 'nova_peticao').length}
+                    {logs.filter(log => log.acao?.toLowerCase() === 'nova_peticao').length}
                   </p>
                 </div>
               </div>
@@ -235,7 +235,7 @@ const AdminLogs = () => {
                 <div>
                   <p className="text-sm text-gray-600">Configurações</p>
                   <p className="text-2xl font-bold">
-                    {logs.filter(log => log.acao.toLowerCase() === 'configuracao').length}
+                    {logs.filter(log => log.acao?.toLowerCase() === 'configuracao').length}
                   </p>
                 </div>
               </div>
@@ -243,7 +243,7 @@ const AdminLogs = () => {
           </Card>
         </div>
 
-        {/* Logs Table */}
+        {/* Tabela de Logs */}
         <Card className="card-legal">
           <CardHeader>
             <CardTitle>
@@ -275,10 +275,10 @@ const AdminLogs = () => {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
-                          <span className={getActionColor(log.acao)}>
-                            {getActionIcon(log.acao)}
+                          <span className={getActionColor(log.acao || '')}>
+                            {getActionIcon(log.acao || '')}
                           </span>
-                          {getActionBadge(log.acao)}
+                          {getActionBadge(log.acao || '')}
                         </div>
                       </TableCell>
                       <TableCell className="font-mono">

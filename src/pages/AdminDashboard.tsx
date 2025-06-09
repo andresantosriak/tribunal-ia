@@ -33,29 +33,29 @@ const AdminDashboard = () => {
 
   const fetchStats = async () => {
     try {
-      // Total users
+      // Total de usuários
       const { count: totalUsers } = await supabase
         .from('usuarios')
         .select('*', { count: 'exact', head: true });
 
-      // Total cases
+      // Total de casos
       const { count: totalCases } = await supabase
         .from('casos')
         .select('*', { count: 'exact', head: true });
 
-      // Completed cases
+      // Casos concluídos
       const { count: completedCases } = await supabase
         .from('casos')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'concluido');
 
-      // Processing cases
+      // Casos processando
       const { count: processingCases } = await supabase
         .from('casos')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'processando');
 
-      // Cases today
+      // Casos hoje
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const { count: casesToday } = await supabase
@@ -63,7 +63,7 @@ const AdminDashboard = () => {
         .select('*', { count: 'exact', head: true })
         .gte('created_at', today.toISOString());
 
-      // Cases this week
+      // Casos esta semana
       const weekAgo = new Date();
       weekAgo.setDate(weekAgo.getDate() - 7);
       const { count: casesThisWeek } = await supabase
@@ -71,7 +71,7 @@ const AdminDashboard = () => {
         .select('*', { count: 'exact', head: true })
         .gte('created_at', weekAgo.toISOString());
 
-      // Cases this month
+      // Casos este mês
       const monthAgo = new Date();
       monthAgo.setMonth(monthAgo.getMonth() - 1);
       const { count: casesThisMonth } = await supabase
@@ -89,7 +89,7 @@ const AdminDashboard = () => {
         casesThisMonth: casesThisMonth || 0,
       });
     } catch (error) {
-      console.error('Error fetching stats:', error);
+      console.error('Erro ao buscar estatísticas:', error);
     } finally {
       setLoading(false);
     }
@@ -133,7 +133,7 @@ const AdminDashboard = () => {
   return (
     <AdminLayout title="Dashboard">
       <div className="space-y-6">
-        {/* Overview Stats */}
+        {/* Estatísticas Gerais */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatCard
             title="Total de Usuários"
@@ -161,7 +161,7 @@ const AdminDashboard = () => {
           />
         </div>
 
-        {/* Time-based Stats */}
+        {/* Estatísticas por Tempo */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <StatCard
             title="Casos Hoje"
@@ -183,7 +183,7 @@ const AdminDashboard = () => {
           />
         </div>
 
-        {/* Recent Activity */}
+        {/* Atividade Recente */}
         <Card className="card-legal">
           <CardHeader>
             <CardTitle>Atividade Recente</CardTitle>

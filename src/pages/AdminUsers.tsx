@@ -65,7 +65,7 @@ const AdminUsers = () => {
       if (error) throw error;
       setUsers(data || []);
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error('Erro ao buscar usuários:', error);
       toast({
         title: "Erro",
         description: "Não foi possível carregar os usuários",
@@ -92,7 +92,7 @@ const AdminUsers = () => {
 
       await fetchUsers();
     } catch (error) {
-      console.error('Error resetting petitions:', error);
+      console.error('Erro ao resetar petições:', error);
       toast({
         title: "Erro",
         description: "Não foi possível resetar o contador",
@@ -119,7 +119,7 @@ const AdminUsers = () => {
 
       await fetchUsers();
     } catch (error) {
-      console.error('Error updating user role:', error);
+      console.error('Erro ao alterar tipo de usuário:', error);
       toast({
         title: "Erro",
         description: "Não foi possível alterar o tipo de usuário",
@@ -130,13 +130,13 @@ const AdminUsers = () => {
 
   const deleteUser = async (userId: string) => {
     try {
-      // Delete user cases first (cascade)
+      // Deletar casos do usuário primeiro (cascade)
       await supabase
         .from('casos')
         .delete()
         .eq('usuario_id', userId);
 
-      // Delete user
+      // Deletar usuário
       const { error } = await supabase
         .from('usuarios')
         .delete()
@@ -151,7 +151,7 @@ const AdminUsers = () => {
 
       await fetchUsers();
     } catch (error) {
-      console.error('Error deleting user:', error);
+      console.error('Erro ao deletar usuário:', error);
       toast({
         title: "Erro",
         description: "Não foi possível deletar o usuário",
@@ -185,7 +185,7 @@ const AdminUsers = () => {
   return (
     <AdminLayout title="Gestão de Usuários">
       <div className="space-y-6">
-        {/* Filters */}
+        {/* Filtros */}
         <Card className="card-legal">
           <CardHeader>
             <CardTitle>Filtros</CardTitle>
@@ -217,7 +217,7 @@ const AdminUsers = () => {
           </CardContent>
         </Card>
 
-        {/* Users Table */}
+        {/* Tabela de Usuários */}
         <Card className="card-legal">
           <CardHeader>
             <CardTitle>
