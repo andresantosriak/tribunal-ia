@@ -1,8 +1,10 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. */
+/* Import professional fonts for legal environment */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Georgia:wght@400;700&display=swap');
 
 @layer base {
   :root {
@@ -15,80 +17,64 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
+    /* Professional blue theme for legal system */
+    --primary: 214 96% 35%; /* #1e40af */
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 210 40% 96.1%;
+    --secondary: 215 20% 65%; /* #9ca3af */
     --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 215 16% 47%; /* #6b7280 */
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 214 96% 35%;
+    --accent-foreground: 210 40% 98%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --ring: 214 96% 35%;
 
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
+    --sidebar-primary: 214 96% 35%;
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 214 96% 35%;
 
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Custom legal theme colors */
+    --legal-blue: 214 96% 35%; /* #1e40af */
+    --legal-blue-light: 214 96% 50%; /* #3b82f6 */
+    --legal-gray: 215 16% 47%; /* #6b7280 */
+    --legal-gray-light: 220 9% 64%; /* #9ca3af */
   }
 
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
-
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
-
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
+    --primary: 214 96% 50%;
     --primary-foreground: 222.2 47.4% 11.2%;
-
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
-
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
-
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
 
@@ -98,6 +84,55 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-inter;
+  }
+
+  /* Professional typography for legal documents */
+  .font-inter { font-family: 'Inter', sans-serif; }
+  .font-georgia { font-family: 'Georgia', serif; }
+  
+  /* Legal document styling */
+  .legal-document {
+    @apply font-georgia leading-relaxed;
+  }
+  
+  /* Timeline styling */
+  .timeline-item {
+    @apply relative pl-8 pb-8;
+  }
+  
+  .timeline-item::before {
+    content: '';
+    @apply absolute left-0 top-2 w-3 h-3 bg-primary rounded-full;
+  }
+  
+  .timeline-item:not(:last-child)::after {
+    content: '';
+    @apply absolute left-1.5 top-5 w-0.5 h-full bg-border;
+  }
+}
+
+@layer components {
+  /* Custom button styles for legal theme */
+  .btn-legal {
+    @apply bg-[hsl(var(--legal-blue))] text-white hover:bg-[hsl(var(--legal-blue-light))] transition-colors;
+  }
+  
+  /* Card variants for different content types */
+  .card-legal {
+    @apply bg-card border border-border rounded-lg shadow-sm;
+  }
+  
+  /* Status badges */
+  .status-processing {
+    @apply bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium;
+  }
+  
+  .status-completed {
+    @apply bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium;
+  }
+  
+  .status-error {
+    @apply bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium;
   }
 }
