@@ -13,7 +13,7 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
+  const { signIn, userProfile } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -26,9 +26,49 @@ const Login = () => {
         title: "Login realizado com sucesso!",
         description: "Bem-vindo ao Tribunal de IA",
       });
-      navigate('/dashboard');
+      
+      // Redirecionar baseado no tipo de usuário
+      setTimeout(() => {
+        if (userProfile?.tipo_usuario === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/dashboard');
+        }
+      }, 1000);
     } catch (error) {
       console.error('Login error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loginDemo = async (demoEmail: string, demoPassword: string) => {
+    setLoading(true);
+    setEmail(demoEmail);
+    setPassword(demoPassword);
+    
+    try {
+      await signIn(demoEmail, demoPassword);
+      toast({
+        title: "Login demo realizado!",
+        description: "Bem-vindo ao sistema",
+      });
+      
+      // Pequeno delay para permitir que o contexto seja atualizado
+      setTimeout(() => {
+        if (demoEmail === 'admin@demo.com') {
+          navigate('/admin');
+        } else {
+          navigate('/dashboard');
+        }
+      }, 1000);
+    } catch (error) {
+      console.error('Demo login error:', error);
+      toast({
+        title: "Erro no login demo",
+        description: "Tente novamente ou use as credenciais manualmente",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -85,6 +125,33 @@ const Login = () => {
                 {loading ? 'Entrando...' : 'Entrar'}
               </Button>
             </form>
+            
+            {/* Contas Demo */}
+            <div className="mt-6 space-y-3">
+              <div className="border-t pt-4">
+                <p className="text-sm text-gray-600 mb-3 text-center">Ou teste com contas demo:</p>
+                <div className="space-y-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full text-sm"
+                    onClick={() => loginDemo('admin@demo.com', 'admin123demo')}
+                    disabled={loading}
+                  >
+                    🔐 Login como Admin (admin@demo.com)
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full text-sm"
+                    onClick={() => loginDemo('santoscydnei@gmail.com', 'senha123')}
+                    disabled={loading}
+                  >
+                    👤 Login como Santos (santoscydnei@gmail.com)
+                  </Button>
+                </div>
+              </div>
+            </div>
             
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
