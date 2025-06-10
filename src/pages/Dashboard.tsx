@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import UserHeader from '@/components/UserHeader';
@@ -307,5 +308,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-
-}

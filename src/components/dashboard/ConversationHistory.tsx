@@ -6,15 +6,15 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
-  refresh-ccw, 
-  message-square, 
-  scale, 
-  briefcase, 
-  gavel, 
-  file-text,
-  calendar,
-  loader-2,
-  alert-circle
+  RefreshCw, 
+  MessageSquare, 
+  Scale, 
+  Briefcase, 
+  Gavel, 
+  FileText,
+  Calendar,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 import { useConversationHistory } from '@/hooks/useConversationHistory';
 
@@ -47,15 +47,15 @@ const ConversationHistory = () => {
   const getPersonaIcon = (agente: string) => {
     switch (agente.toLowerCase()) {
       case 'promotor':
-        return 'scale';
+        return <Scale className="h-4 w-4" />;
       case 'advogado':
-        return 'briefcase';
+        return <Briefcase className="h-4 w-4" />;
       case 'juiz':
-        return 'gavel';
+        return <Gavel className="h-4 w-4" />;
       case 'relatorio':
-        return 'file-text';
+        return <FileText className="h-4 w-4" />;
       default:
-        return 'message-square';
+        return <MessageSquare className="h-4 w-4" />;
     }
   };
 
@@ -81,11 +81,7 @@ const ConversationHistory = () => {
       <div className="space-y-3 p-1">
         {conversations.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            <div className="h-12 w-12 mx-auto mb-4 opacity-50 flex items-center justify-center">
-              <svg className="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg>
-            </div>
+            <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p className="text-lg font-medium">Nenhuma conversa encontrada</p>
             <p className="text-sm">Conversas com {personaType} aparecerão aqui</p>
           </div>
@@ -95,22 +91,7 @@ const ConversationHistory = () => {
               <CardContent className="p-4">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <div className="flex items-center">
-                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        {getPersonaIcon(conversation.agente) === 'scale' && (
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                        )}
-                        {getPersonaIcon(conversation.agente) === 'briefcase' && (
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m8 0H8m8 0v6a2 2 0 01-2 2H10a2 2 0 01-2-2V6m8 0V4a2 2 0 00-2-2H10a2 2 0 00-2 2v2" />
-                        )}
-                        {getPersonaIcon(conversation.agente) === 'gavel' && (
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                        )}
-                        {getPersonaIcon(conversation.agente) === 'file-text' && (
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        )}
-                      </svg>
-                    </div>
+                    {getPersonaIcon(conversation.agente)}
                     <Badge className={getPersonaColor(conversation.agente)}>
                       {conversation.agente}
                     </Badge>
@@ -119,9 +100,7 @@ const ConversationHistory = () => {
                     </span>
                   </div>
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
+                    <Calendar className="h-3 w-3" />
                     {formatDate(conversation.timestamp_interacao)}
                   </div>
                 </div>
@@ -165,13 +144,9 @@ const ConversationHistory = () => {
             disabled={isLoading}
           >
             {isLoading ? (
-              <svg className="h-4 w-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
+              <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
+              <RefreshCw className="h-4 w-4" />
             )}
           </Button>
         </div>
@@ -181,9 +156,7 @@ const ConversationHistory = () => {
         {isLoading && (
           <div className="flex items-center justify-center py-12">
             <div className="flex items-center gap-2 text-muted-foreground">
-              <svg className="h-5 w-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
+              <Loader2 className="h-5 w-5 animate-spin" />
               <span>Carregando histórico de conversas...</span>
             </div>
           </div>
@@ -192,9 +165,7 @@ const ConversationHistory = () => {
         {/* Tratamento de erro */}
         {error && !isLoading && (
           <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-md text-red-700">
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <AlertCircle className="h-4 w-4" />
             <div>
               <p className="font-medium">Erro ao carregar histórico</p>
               <p className="text-sm">{error}</p>
@@ -215,36 +186,28 @@ const ConversationHistory = () => {
           <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="promotor" className="flex items-center gap-2">
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
+                <Scale className="h-4 w-4" />
                 Promotor
                 <Badge variant="secondary" className="ml-1">
                   {groupedConversations.promotor.length}
                 </Badge>
               </TabsTrigger>
               <TabsTrigger value="advogado" className="flex items-center gap-2">
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m8 0H8m8 0v6a2 2 0 01-2 2H10a2 2 0 01-2-2V6m8 0V4a2 2 0 00-2-2H10a2 2 0 00-2 2v2" />
-                </svg>
+                <Briefcase className="h-4 w-4" />
                 Advogado
                 <Badge variant="secondary" className="ml-1">
                   {groupedConversations.advogado.length}
                 </Badge>
               </TabsTrigger>
               <TabsTrigger value="juiz" className="flex items-center gap-2">
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                </svg>
+                <Gavel className="h-4 w-4" />
                 Juiz
                 <Badge variant="secondary" className="ml-1">
                   {groupedConversations.juiz.length}
                 </Badge>
               </TabsTrigger>
               <TabsTrigger value="relatorio" className="flex items-center gap-2">
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
+                <FileText className="h-4 w-4" />
                 Relatório
                 <Badge variant="secondary" className="ml-1">
                   {groupedConversations.relatorio.length}
