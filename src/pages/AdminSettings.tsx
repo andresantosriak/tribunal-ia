@@ -6,35 +6,71 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Save, TestTube2, CheckCircle, AlertCircle } from 'lucide-react';
-import useSettings from '@/hooks/useSettings';
+import { useGlobalSettings } from '@/contexts/SettingsContext';
 
 const AdminSettings = () => {
-  const { 
-    settings, 
-    loading, 
-    saving, 
-    updateSetting, 
-    saveSettings, 
-    testWebhook 
-  } = useSettings();
-  
+  const { settings, updateSettings, saveSettings, isLoading, lastSaved } = useGlobalSettings();
+  const [localWebhookUrl, setLocalWebhookUrl] = useState(settings.webhookUrl);
+  const [localMaxPeticoes, setLocalMaxPeticoes] = useState(settings.maxPeticoesUsuario);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const [testingWebhook, setTestingWebhook] = useState(false);
+
+  const handleWebhookUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newUrl = e.target.value;
+    setLocalWebhookUrl(newUrl);
+    updateSettings({ webhookUrl: newUrl });
+  };
+
+  const handleMaxPeticoesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = parseInt(e.target.value) || 5;
+    setLocalMaxPeticoes(newValue);
+    updateSettings({ maxPeticoesUsuario: newValue });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Salvando configurações:', settings);
-    await saveSettings(settings);
+    
+    const success = await saveSettings();
+    
+    if (success) {
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+      console.log('Configurações salvas com sucesso:', settings);
+    }
   };
 
   const handleTestWebhook = async () => {
+    if (!settings.webhookUrl) {
+      return;
+    }
+
     setTestingWebhook(true);
-    await testWebhook();
-    setTestingWebhook(false);
+    try {
+      const response = await fetch(settings.webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          test: true,
+          timestamp: new Date().toISOString(),
+          message: 'Teste de conexão do Tribunal de IA'
+        })
+      });
+
+      if (response.ok) {
+        console.log('Webhook testado com sucesso');
+      } else {
+        throw new Error(`HTTP ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Erro no teste do webhook:', error);
+    } finally {
+      setTestingWebhook(false);
+    }
   };
 
-  // Validação de URL
   const isValidUrl = (url: string) => {
-    if (!url) return true; // URL vazia é válida
+    if (!url) return true;
     try {
       new URL(url);
       return true;
@@ -43,18 +79,8 @@ const AdminSettings = () => {
     }
   };
 
-  const isWebhookUrlValid = isValidUrl(settings.webhook_url);
-
-  if (loading) {
-    return (
-      <AdminLayout title="Configurações">
-        <div className="flex items-center justify-center p-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          <span className="ml-3">Carregando configurações...</span>
-        </div>
-      </AdminLayout>
-    );
-  }
+  const isWebhookUrlValid = isValidUrl(localWebhookUrl);
+  const hasChanges = localWebhookUrl !== settings.webhookUrl || localMaxPeticoes !== settings.maxPeticoesUsuario;
 
   return (
     <AdminLayout title="Configurações">
@@ -76,30 +102,29 @@ const AdminSettings = () => {
                     id="webhook_url"
                     type="url"
                     placeholder="https://your-n8n-instance.com/webhook/..."
-                    value={settings.webhook_url}
-                    onChange={(e) => updateSetting('webhook_url', e.target.value)}
+                    value={localWebhookUrl}
+                    onChange={handleWebhookUrlChange}
                     className={`flex-1 ${!isWebhookUrlValid ? 'border-red-500' : ''}`}
                   />
                   <Button
                     type="button"
                     variant="outline"
                     onClick={handleTestWebhook}
-                    disabled={testingWebhook || !settings.webhook_url || !isWebhookUrlValid}
+                    disabled={testingWebhook || !settings.webhookUrl || !isWebhookUrlValid}
                   >
                     <TestTube2 className="h-4 w-4 mr-2" />
                     {testingWebhook ? 'Testando...' : 'Testar'}
                   </Button>
                 </div>
                 
-                {/* Feedback visual para URL */}
-                {settings.webhook_url && !isWebhookUrlValid && (
+                {localWebhookUrl && !isWebhookUrlValid && (
                   <p className="text-sm text-red-500 flex items-center gap-1">
                     <AlertCircle className="h-4 w-4" />
                     Por favor, insira uma URL válida
                   </p>
                 )}
                 
-                {settings.webhook_url && isWebhookUrlValid && (
+                {localWebhookUrl && isWebhookUrlValid && (
                   <p className="text-sm text-green-600 flex items-center gap-1">
                     <CheckCircle className="h-4 w-4" />
                     URL válida configurada
@@ -119,8 +144,8 @@ const AdminSettings = () => {
                   type="number"
                   min="1"
                   max="100"
-                  value={settings.max_peticoes_usuario}
-                  onChange={(e) => updateSetting('max_peticoes_usuario', parseInt(e.target.value) || 5)}
+                  value={localMaxPeticoes}
+                  onChange={handleMaxPeticoesChange}
                 />
                 <p className="text-sm text-gray-600">
                   Número máximo de petições que cada usuário pode enviar
@@ -128,13 +153,13 @@ const AdminSettings = () => {
               </div>
 
               {/* Save Button */}
-              <div className="flex justify-end">
+              <div className="flex justify-between items-center">
                 <Button 
                   type="submit" 
                   className="btn-legal min-w-[180px]"
-                  disabled={saving || !isWebhookUrlValid}
+                  disabled={isLoading || !isWebhookUrlValid}
                 >
-                  {saving ? (
+                  {isLoading ? (
                     <div className="flex items-center gap-2">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                       Salvando...
@@ -146,6 +171,20 @@ const AdminSettings = () => {
                     </>
                   )}
                 </Button>
+
+                {saveSuccess && (
+                  <div className="flex items-center gap-2 text-green-600">
+                    <CheckCircle className="h-4 w-4" />
+                    <span className="text-sm font-medium">Salvo com sucesso!</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Debug Information */}
+              <div className="mt-4 p-3 bg-gray-50 rounded-lg text-sm space-y-1">
+                <p><strong>URL atual salva:</strong> {settings.webhookUrl || 'Nenhuma'}</p>
+                <p><strong>Última modificação:</strong> {lastSaved ? lastSaved.toLocaleString() : 'Nunca'}</p>
+                <p><strong>Status:</strong> {hasChanges ? 'Há alterações não salvas' : 'Tudo salvo'}</p>
               </div>
             </form>
           </CardContent>
@@ -176,22 +215,32 @@ const AdminSettings = () => {
               </div>
             </div>
             
-            {/* Status das configurações */}
             <div className="pt-4 border-t">
               <h4 className="font-medium mb-2">Status das Configurações:</h4>
               <div className="space-y-1 text-sm">
                 <div className="flex items-center gap-2">
-                  {settings.webhook_url ? (
+                  {settings.webhookUrl ? (
                     <CheckCircle className="h-4 w-4 text-green-600" />
                   ) : (
                     <AlertCircle className="h-4 w-4 text-amber-500" />
                   )}
-                  <span>Webhook URL: {settings.webhook_url ? 'Configurado' : 'Não configurado'}</span>
+                  <span>Webhook URL: {settings.webhookUrl ? 'Configurado' : 'Não configurado'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-green-600" />
-                  <span>Limite de petições: {settings.max_peticoes_usuario}</span>
+                  <span>Limite de petições: {settings.maxPeticoesUsuario}</span>
                 </div>
+              </div>
+            </div>
+
+            {/* Test Section */}
+            <div className="pt-4 border-t">
+              <h4 className="font-medium mb-2">Teste de Webhook:</h4>
+              <div className="p-3 bg-blue-50 rounded-lg">
+                <p className="text-sm"><strong>URL configurada:</strong></p>
+                <p className="text-sm font-mono break-all">
+                  {settings.webhookUrl || 'Nenhuma URL configurada'}
+                </p>
               </div>
             </div>
           </CardContent>
