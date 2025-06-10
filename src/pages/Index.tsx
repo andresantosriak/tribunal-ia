@@ -37,17 +37,88 @@ const Index = () => {
             Obtenha sentenças fundamentadas e análises jurídicas detalhadas.
           </p>
           <div className="space-x-4">
-            <Link to="/register">
-              <Button size="lg" className="btn-legal">
-                Começar Agora
-              </Button>
-            </Link>
             <Link to="/login">
-              <Button size="lg" variant="outline">
+              <Button size="lg" className="btn-legal">
                 Fazer Login
               </Button>
             </Link>
+            <Link to="/register">
+              <Button size="lg" variant="outline">
+                Cadastrar
+              </Button>
+            </Link>
           </div>
+        </div>
+      </section>
+
+      {/* Credenciais Demo */}
+      <section className="container mx-auto px-4 py-16">
+        <div className="max-w-4xl mx-auto">
+          <Card className="bg-blue-50 border-blue-200">
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl text-blue-800">🔑 Sistema de Teste Disponível</CardTitle>
+              <CardDescription className="text-blue-600">
+                Use as credenciais abaixo para testar o sistema
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card className="bg-white border-blue-200">
+                  <CardHeader>
+                    <CardTitle className="text-lg text-blue-700">👨‍💼 Administrador</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 text-sm">
+                      <p><strong>Email:</strong> admin@tribunal.com</p>
+                      <p><strong>Senha:</strong> admin123</p>
+                      <p className="text-blue-600">• Acesso completo ao sistema</p>
+                      <p className="text-blue-600">• Gestão de usuários</p>
+                      <p className="text-blue-600">• Configurações avançadas</p>
+                    </div>
+                    <Link to="/login" className="mt-4 block">
+                      <Button className="w-full" size="sm">Fazer Login Admin</Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-white border-blue-200">
+                  <CardHeader>
+                    <CardTitle className="text-lg text-blue-700">👤 Usuário</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 text-sm">
+                      <p><strong>Email:</strong> usuario@tribunal.com</p>
+                      <p><strong>Senha:</strong> user123</p>
+                      <p className="text-blue-600">• Envio de petições</p>
+                      <p className="text-blue-600">• Histórico de casos</p>
+                      <p className="text-blue-600">• Dashboard pessoal</p>
+                    </div>
+                    <Link to="/login" className="mt-4 block">
+                      <Button className="w-full" variant="outline" size="sm">Fazer Login Usuário</Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-white border-blue-200">
+                  <CardHeader>
+                    <CardTitle className="text-lg text-blue-700">🔐 Santos (Admin)</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 text-sm">
+                      <p><strong>Email:</strong> santoscydnei@gmail.com</p>
+                      <p><strong>Senha:</strong> senha123</p>
+                      <p className="text-blue-600">• Administrador principal</p>
+                      <p className="text-blue-600">• Acesso completo</p>
+                      <p className="text-blue-600">• Configurações do sistema</p>
+                    </div>
+                    <Link to="/login" className="mt-4 block">
+                      <Button className="w-full" size="sm">Fazer Login Santos</Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </section>
 
@@ -91,93 +162,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Pricing/Access */}
-      <section className="container mx-auto px-4 py-16">
-        <div className="text-center mb-12">
-          <h3 className="text-3xl font-bold text-gray-900 mb-4">Tipos de Conta</h3>
-          <p className="text-lg text-gray-600">Escolha o nível de acesso ideal para você</p>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          <Card className="card-legal">
-            <CardHeader>
-              <Users className="h-8 w-8 text-primary mb-2" />
-              <CardTitle>Usuário</CardTitle>
-              <CardDescription>Para advogados e profissionais do direito</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm">
-                <li>✓ 5 petições por mês</li>
-                <li>✓ Análise automática de casos</li>
-                <li>✓ Histórico de casos</li>
-                <li>✓ Suporte básico</li>
-              </ul>
-              <div className="mt-6">
-                <Link to="/register">
-                  <Button className="w-full btn-legal">Cadastrar como Usuário</Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="card-legal border-primary">
-            <CardHeader>
-              <Shield className="h-8 w-8 text-primary mb-2" />
-              <CardTitle>Administrador</CardTitle>
-              <CardDescription>Para gestão do sistema</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm">
-                <li>✓ Acesso administrativo completo</li>
-                <li>✓ Gestão de usuários</li>
-                <li>✓ Relatórios e estatísticas</li>
-                <li>✓ Configurações do sistema</li>
-                <li>✓ Logs de atividade</li>
-              </ul>
-              <div className="mt-6">
-                <Link to="/login">
-                  <Button className="w-full" variant="outline">
-                    Acesso Admin
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
-      {/* Demo Accounts */}
-      <section className="container mx-auto px-4 py-16 bg-gray-50 rounded-lg mb-16">
-        <div className="text-center mb-8">
-          <h3 className="text-2xl font-bold text-gray-900 mb-4">Contas Demo Disponíveis</h3>
-          <p className="text-gray-600">Teste o sistema com essas credenciais</p>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">👤 Usuário Demo</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm"><strong>Email:</strong> santoscydnei@gmail.com</p>
-              <p className="text-sm"><strong>Senha:</strong> senha123</p>
-              <p className="text-xs text-gray-600 mt-2">Acesso completo de usuário</p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">🔐 Admin Demo</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm"><strong>Email:</strong> admin@demo.com</p>
-              <p className="text-sm"><strong>Senha:</strong> admin123demo</p>
-              <p className="text-xs text-gray-600 mt-2">Acesso administrativo completo</p>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">
         <div className="container mx-auto px-4 text-center">
@@ -188,6 +172,9 @@ const Index = () => {
           <p className="text-gray-400">
             Análise jurídica automatizada com inteligência artificial
           </p>
+          <div className="mt-4 text-sm text-gray-500">
+            Sistema de teste - Use as credenciais fornecidas para acessar
+          </div>
         </div>
       </footer>
     </div>

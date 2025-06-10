@@ -1,60 +1,68 @@
 
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Scale, LogOut, User } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
+import { Scale, User, LogOut, Settings } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const UserHeader = () => {
-  const { userProfile, signOut } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
+  const navigate = useNavigate();
 
-  const maxPeticoes = 5; // This should come from system settings
-  const peticionesRestantes = maxPeticoes - (userProfile?.peticoes_usadas || 0);
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
 
   return (
-    <header className="border-b bg-white">
-      <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-        <div className="flex items-center space-x-2">
-          <Scale className="h-8 w-8 text-primary" />
-          <h1 className="text-2xl font-bold text-primary">Tribunal de IA</h1>
-        </div>
-        
-        <div className="flex items-center space-x-6">
-          {/* Petition counter */}
-          <div className="bg-gray-100 px-4 py-2 rounded-lg">
-            <span className="text-sm font-medium text-gray-700">
-              Petições: {peticionesRestantes}/{maxPeticoes} restantes
-            </span>
+    <header className="bg-white shadow-sm border-b">
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Scale className="h-8 w-8 text-primary" />
+            <h1 className="text-2xl font-bold text-primary">Tribunal de IA</h1>
           </div>
           
-          {/* User menu */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="flex items-center space-x-2">
-                <User className="h-4 w-4" />
-                <span>{userProfile?.nome}</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {userProfile?.tipo_usuario === 'admin' && (
-                <DropdownMenuItem onClick={() => window.location.href = '/admin'}>
-                  Painel Admin
+          <div className="flex items-center space-x-4">
+            {/* Mostrar informações do usuário */}
+            <div className="text-right">
+              <p className="text-sm font-medium">{user?.name}</p>
+              <p className="text-xs text-gray-500">
+                {user?.role === 'admin' ? 'Administrador' : 'Usuário'}
+              </p>
+            </div>
+
+            {/* Menu do usuário */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <User className="h-4 w-4 mr-2" />
+                  Menu
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {isAdmin && (
+                  <DropdownMenuItem onClick={() => navigate('/admin')}>
+                    <Settings className="h-4 w-4 mr-2" />
+                    Painel Admin
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem onClick={() => navigate('/dashboard')}>
+                  <User className="h-4 w-4 mr-2" />
+                  Dashboard
                 </DropdownMenuItem>
-              )}
-              <DropdownMenuItem onClick={() => signOut()}>
-                <LogOut className="h-4 w-4 mr-2" />
-                Sair
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sair
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
     </header>
