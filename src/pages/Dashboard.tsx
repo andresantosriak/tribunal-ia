@@ -1,7 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import UserHeader from '@/components/UserHeader';
+import ConversationHistory from '@/components/dashboard/ConversationHistory';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -296,9 +296,16 @@ const Dashboard = () => {
             </div>
           )}
         </div>
+
+        {/* Conversation History */}
+        <div className="mt-8">
+          <ConversationHistory />
+        </div>
       </div>
     </div>
   );
 };
 
 export default Dashboard;
+
+}
