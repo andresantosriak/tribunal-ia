@@ -1,12 +1,13 @@
-
 import { useState } from 'react';
 import AdminLayout from '@/components/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Save, TestTube2, CheckCircle, AlertCircle } from 'lucide-react';
+import { Save, TestTube2, CheckCircle, AlertCircle, Plus } from 'lucide-react';
 import { useGlobalSettings } from '@/contexts/SettingsContext';
+import { supabase } from '@/lib/supabase';
+import { toast } from '@/hooks/use-toast';
 
 const AdminSettings = () => {
   const { settings, updateSettings, saveSettings, isLoading, lastSaved } = useGlobalSettings();
@@ -14,6 +15,50 @@ const AdminSettings = () => {
   const [localMaxPeticoes, setLocalMaxPeticoes] = useState(settings.maxPeticoesUsuario);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [testingWebhook, setTestingWebhook] = useState(false);
+  const [creatingConfig, setCreatingConfig] = useState(false);
+
+  const createInitialConfig = async () => {
+    setCreatingConfig(true);
+    try {
+      console.log('Creating initial configuration...');
+      
+      const { data, error } = await supabase
+        .from('configuracoes')
+        .insert([
+          {
+            webhook_url: '',
+            max_peticoes_usuario: 5
+          }
+        ])
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error creating config:', error);
+        throw error;
+      }
+      
+      console.log('Initial config created:', data);
+      
+      toast({
+        title: "Configuração criada",
+        description: "Configuração inicial criada com sucesso",
+      });
+      
+      // Refresh settings after creation
+      window.location.reload();
+      
+    } catch (error: any) {
+      console.error('Error creating initial config:', error);
+      toast({
+        title: "Erro",
+        description: `Erro ao criar configuração: ${error.message}`,
+        variant: "destructive",
+      });
+    } finally {
+      setCreatingConfig(false);
+    }
+  };
 
   const handleWebhookUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newUrl = e.target.value;
@@ -91,6 +136,27 @@ const AdminSettings = () => {
             <CardDescription>
               Configure as definições globais do Tribunal de IA
             </CardDescription>
+            {!settings.webhookUrl && !settings.maxPeticoesUsuario && (
+              <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertCircle className="h-4 w-4 text-yellow-600" />
+                  <span className="font-medium text-yellow-800">Configuração inicial necessária</span>
+                </div>
+                <p className="text-sm text-yellow-700 mb-3">
+                  Parece que é a primeira vez que você acessa as configurações. 
+                  Clique no botão abaixo para criar a configuração inicial.
+                </p>
+                <Button
+                  onClick={createInitialConfig}
+                  disabled={creatingConfig}
+                  size="sm"
+                  className="bg-yellow-600 hover:bg-yellow-700"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  {creatingConfig ? 'Criando...' : 'Criar Configuração Inicial'}
+                </Button>
+              </div>
+            )}
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">

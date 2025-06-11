@@ -93,6 +93,11 @@ const Dashboard = () => {
   const handleSubmitPetition = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('=== DEBUG INÍCIO ===');
+    console.log('userProfile:', userProfile);
+    console.log('petitionText:', petitionText);
+    console.log('peticionesRestantes:', peticionesRestantes);
+    
     if (!petitionText.trim()) {
       toast({
         title: "Erro",
@@ -104,8 +109,18 @@ const Dashboard = () => {
 
     if (peticionesRestantes <= 0) {
       toast({
-        title: "Limite atingido",
+        title: "Limite atingido", 
         description: "Você atingiu o limite de petições",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!userProfile?.id) {
+      console.error('User profile ID missing');
+      toast({
+        title: "Erro de autenticação",
+        description: "Usuário não identificado. Faça login novamente.",
         variant: "destructive",
       });
       return;
@@ -114,46 +129,87 @@ const Dashboard = () => {
     setLoading(true);
 
     try {
-      // Generate unique case ID
+      console.log('=== STEP 0: Verify user exists ===');
+      // Verificar se usuário existe na tabela usuarios
+      const { data: userExists, error: userCheckError } = await supabase
+        .from('usuarios')
+        .select('id, peticoes_usadas')
+        .eq('id', userProfile.id)
+        .single();
+
+      console.log('User check result:', { userExists, userCheckError });
+
+      if (userCheckError || !userExists) {
+        throw new Error('Usuário não encontrado na base de dados');
+      }
+
+      console.log('=== STEP 1: Generate casoId ===');
       const casoId = `CASO_${Date.now()}`;
-      
-      // Insert new case with user ID
-      const { error: caseError } = await supabase
+      console.log('Generated casoId:', casoId);
+
+      console.log('=== STEP 2: Insert case ===');
+      const { data: insertData, error: caseError } = await supabase
         .from('casos')
         .insert([
           {
             caso_id: casoId,
             texto_original: petitionText,
             status: 'processando',
-            usuario_id: userProfile?.id  // Associate case with user
+            usuario_id: userProfile.id
           }
-        ]);
+        ])
+        .select();
 
-      if (caseError) throw caseError;
+      console.log('Insert result:', { insertData, caseError });
 
-      // Update user's petition count
-      const { error: userError } = await supabase
+      if (caseError) {
+        console.error('Case insert error:', caseError);
+        throw new Error(`Erro ao inserir caso: ${caseError.message}`);
+      }
+
+      console.log('=== STEP 3: Update user petition count ===');
+      const { data: updateData, error: userError } = await supabase
         .from('usuarios')
         .update({ peticoes_usadas: (userProfile?.peticoes_usadas || 0) + 1 })
-        .eq('id', userProfile?.id);
+        .eq('id', userProfile.id)
+        .select();
 
-      if (userError) throw userError;
+      console.log('Update result:', { updateData, userError });
 
-      // Get webhook URL from configurations
-      const { data: config } = await supabase
+      if (userError) {
+        console.error('User update error:', userError);
+        throw new Error(`Erro ao atualizar usuário: ${userError.message}`);
+      }
+
+      console.log('=== STEP 4: Fetch webhook config ===');
+      const { data: config, error: configError } = await supabase
         .from('configuracoes')
         .select('webhook_url')
         .single();
 
+      console.log('Config result:', { config, configError });
+
+      if (configError && configError.code !== 'PGRST116') {
+        console.error('Config fetch error:', configError);
+        // Não falhar por causa de config, apenas avisar
+      }
+
+      console.log('=== STEP 5: Send webhook ===');
       if (config?.webhook_url) {
         try {
+          console.log('Sending webhook to:', config.webhook_url);
+          console.log('Webhook payload:', { texto: petitionText });
+          
           const response = await fetch(config.webhook_url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
-              texto: petitionText  // Correct format requested
+              texto: petitionText
             })
           });
+          
+          console.log('Webhook response status:', response.status);
+          console.log('Webhook response ok:', response.ok);
           
           if (!response.ok) {
             throw new Error(`Webhook failed: ${response.status}`);
@@ -170,12 +226,13 @@ const Dashboard = () => {
       } else {
         console.warn('Webhook URL não configurada');
         toast({
-          title: "Aviso",
-          description: "Petição salva. Configure o webhook nas configurações para processamento automático.",
+          title: "Aviso", 
+          description: "Petição salva, mas webhook não está configurado",
           variant: "default",
         });
       }
 
+      console.log('=== SUCCESS ===');
       toast({
         title: "Petição enviada!",
         description: "Seu caso será processado em breve",
@@ -184,15 +241,21 @@ const Dashboard = () => {
       setPetitionText('');
       await refreshProfile();
       await fetchCases();
+      
     } catch (error) {
-      console.error('Error submitting petition:', error);
+      console.error('=== ERRO GERAL ===');
+      console.error('Error details:', error);
+      console.error('Error message:', error instanceof Error ? error.message : 'Unknown error');
+      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack');
+      
       toast({
         title: "Erro",
-        description: "Não foi possível enviar a petição",
+        description: error instanceof Error ? error.message : "Não foi possível enviar a petição",
         variant: "destructive",
       });
     } finally {
       setLoading(false);
+      console.log('=== DEBUG FIM ===');
     }
   };
 
