@@ -40,7 +40,6 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       // Simular salvamento assíncrono
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Aqui os dados já estão persistidos no contexto global
       setLastSaved(new Date());
       
       return true;
