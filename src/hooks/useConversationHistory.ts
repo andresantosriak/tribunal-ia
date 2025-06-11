@@ -44,7 +44,7 @@ export const useConversationHistory = (userId?: string) => {
       const targetUserId = userId || userProfile?.id;
       console.log('Carregando histórico de conversas para usuário:', targetUserId);
 
-      // Buscar casos do usuário para filtrar conversas
+      // Buscar apenas casos do usuário logado
       const { data: userCases, error: casesError } = await supabase
         .from('casos')
         .select('caso_id')
@@ -127,6 +127,55 @@ export const useConversationHistory = (userId?: string) => {
       loadConversationHistory();
     }
   }, [userProfile, userId]);
+
+  // Real-time subscriptions for conversations
+  useEffect(() => {
+    if (!userProfile?.id && !userId) return;
+
+    const targetUserId = userId || userProfile?.id;
+
+    // Subscription for historico_interacoes
+    const interacoesSubscription = supabase
+      .channel('conversation_updates')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'historico_interacoes'
+      }, () => {
+        loadConversationHistory();
+      })
+      .subscribe();
+
+    // Subscription for sentencas
+    const sentencasSubscription = supabase
+      .channel('sentencas_updates')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'sentencas'
+      }, () => {
+        loadConversationHistory();
+      })
+      .subscribe();
+
+    // Subscription for relatorios_melhorias
+    const relatoriosSubscription = supabase
+      .channel('relatorios_updates')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'relatorios_melhorias'
+      }, () => {
+        loadConversationHistory();
+      })
+      .subscribe();
+
+    return () => {
+      interacoesSubscription.unsubscribe();
+      sentencasSubscription.unsubscribe();
+      relatoriosSubscription.unsubscribe();
+    };
+  }, [userProfile?.id, userId]);
 
   const refreshHistory = () => {
     loadConversationHistory();

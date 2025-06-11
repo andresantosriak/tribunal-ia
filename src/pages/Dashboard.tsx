@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import UserHeader from '@/components/UserHeader';
@@ -35,6 +34,27 @@ const Dashboard = () => {
     fetchCases();
   }, [userProfile]);
 
+  // Real-time subscription for user cases
+  useEffect(() => {
+    if (!userProfile?.id) return;
+
+    const casosSubscription = supabase
+      .channel('user_cases_updates')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'casos',
+        filter: `usuario_id=eq.${userProfile.id}`
+      }, () => {
+        fetchCases();
+      })
+      .subscribe();
+
+    return () => {
+      casosSubscription.unsubscribe();
+    };
+  }, [userProfile?.id]);
+
   const fetchCases = async () => {
     if (!userProfile) return;
 
@@ -42,6 +62,7 @@ const Dashboard = () => {
       const { data, error } = await supabase
         .from('casos')
         .select('*')
+        .eq('usuario_id', userProfile.id)  // Filter by current user
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -96,7 +117,7 @@ const Dashboard = () => {
       // Generate unique case ID
       const casoId = `CASO_${Date.now()}`;
       
-      // Insert new case
+      // Insert new case with user ID
       const { error: caseError } = await supabase
         .from('casos')
         .insert([
@@ -104,6 +125,7 @@ const Dashboard = () => {
             caso_id: casoId,
             texto_original: petitionText,
             status: 'processando',
+            usuario_id: userProfile?.id  // Associate case with user
           }
         ]);
 
@@ -117,21 +139,41 @@ const Dashboard = () => {
 
       if (userError) throw userError;
 
-      // Here you would call the webhook to n8n
-      // For now, we'll just simulate the webhook call
-      try {
-        // const webhookUrl = 'YOUR_N8N_WEBHOOK_URL';
-        // await fetch(webhookUrl, {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify({ 
-        //     caso_id: casoId,
-        //     texto: petitionText 
-        //   })
-        // });
-        console.log('Webhook would be called here with case:', casoId);
-      } catch (webhookError) {
-        console.error('Webhook error:', webhookError);
+      // Get webhook URL from configurations
+      const { data: config } = await supabase
+        .from('configuracoes')
+        .select('webhook_url')
+        .single();
+
+      if (config?.webhook_url) {
+        try {
+          const response = await fetch(config.webhook_url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              texto: petitionText  // Correct format requested
+            })
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Webhook failed: ${response.status}`);
+          }
+          console.log('Webhook enviado com sucesso');
+        } catch (webhookError) {
+          console.error('Erro no webhook:', webhookError);
+          toast({
+            title: "Aviso",
+            description: "Petição salva, mas houve problema no envio para processamento",
+            variant: "default",
+          });
+        }
+      } else {
+        console.warn('Webhook URL não configurada');
+        toast({
+          title: "Aviso",
+          description: "Petição salva. Configure o webhook nas configurações para processamento automático.",
+          variant: "default",
+        });
       }
 
       toast({

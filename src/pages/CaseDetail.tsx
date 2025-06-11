@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import UserHeader from '@/components/UserHeader';
@@ -45,6 +44,51 @@ const CaseDetail = () => {
     if (caseId) {
       fetchCaseData(caseId);
     }
+  }, [caseId]);
+
+  // Real-time subscription for case updates
+  useEffect(() => {
+    if (!caseId) return;
+
+    const subscription = supabase
+      .channel(`case_${caseId}_updates`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'historico_interacoes',
+        filter: `caso_id=eq.${caseId}`
+      }, () => {
+        fetchCaseData(caseId);
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public', 
+        table: 'sentencas',
+        filter: `caso_id=eq.${caseId}`
+      }, () => {
+        fetchCaseData(caseId);
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'relatorios_melhorias', 
+        filter: `caso_id=eq.${caseId}`
+      }, () => {
+        fetchCaseData(caseId);
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'analises_iniciais',
+        filter: `caso_id=eq.${caseId}`
+      }, () => {
+        fetchCaseData(caseId);
+      })
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [caseId]);
 
   const fetchCaseData = async (casoId: string) => {
