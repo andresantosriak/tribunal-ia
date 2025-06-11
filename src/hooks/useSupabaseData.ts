@@ -32,7 +32,7 @@ export const useSupabaseData = <T = any>(options: UseSupabaseDataOptions) => {
 
       console.log(`🔍 Carregando dados da tabela: ${table}`);
 
-      let query = supabase.from(table).select(select);
+      let query = supabase.from(table as any).select(select);
 
       // Aplicar filtros
       Object.entries(filters).forEach(([column, value]) => {
@@ -59,7 +59,7 @@ export const useSupabaseData = <T = any>(options: UseSupabaseDataOptions) => {
       }
 
       console.log(`✅ Dados carregados de ${table}:`, result);
-      setData(result || []);
+      setData((result as T[]) || []);
 
     } catch (err: any) {
       console.error(`❌ Erro no carregamento de ${table}:`, err);
@@ -82,7 +82,7 @@ export const useSupabaseData = <T = any>(options: UseSupabaseDataOptions) => {
       console.log(`💾 Inserindo item na tabela ${table}:`, item);
 
       const { data: result, error } = await supabase
-        .from(table)
+        .from(table as any)
         .insert(item)
         .select()
         .single();
@@ -95,7 +95,7 @@ export const useSupabaseData = <T = any>(options: UseSupabaseDataOptions) => {
       console.log(`✅ Item inserido em ${table}:`, result);
       
       // Atualizar lista local
-      setData(prev => [result, ...prev]);
+      setData(prev => [result as T, ...prev]);
       
       return { success: true, data: result };
     } catch (err: any) {
@@ -115,7 +115,7 @@ export const useSupabaseData = <T = any>(options: UseSupabaseDataOptions) => {
       console.log(`🔄 Atualizando item em ${table}:`, { id, updates });
 
       const { data: result, error } = await supabase
-        .from(table)
+        .from(table as any)
         .update(updates)
         .eq('id', id)
         .select()
@@ -130,7 +130,7 @@ export const useSupabaseData = <T = any>(options: UseSupabaseDataOptions) => {
       
       // Atualizar lista local
       setData(prev => prev.map(item => 
-        (item as any).id === id ? result : item
+        (item as any).id === id ? result as T : item
       ));
       
       return { success: true, data: result };
@@ -151,7 +151,7 @@ export const useSupabaseData = <T = any>(options: UseSupabaseDataOptions) => {
       console.log(`🗑️ Removendo item da tabela ${table}:`, id);
 
       const { error } = await supabase
-        .from(table)
+        .from(table as any)
         .delete()
         .eq('id', id);
 
