@@ -28,60 +28,62 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <AuthProvider>
-        <SettingsProvider>
-          <BrowserRouter>
-            <Routes>
-              {/* Public routes */}
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              
-              {/* Protected user routes */}
-              <Route path="/dashboard" element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } />
-              <Route path="/case/:caseId" element={
-                <ProtectedRoute>
-                  <CaseDetail />
-                </ProtectedRoute>
-              } />
-              
-              {/* Protected admin routes */}
-              <Route path="/admin" element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminDashboard />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/users" element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminUsers />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/cases" element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminCases />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/settings" element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminSettings />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/logs" element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminLogs />
-                </ProtectedRoute>
-              } />
-              
-              {/* Catch all */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </SettingsProvider>
-      </AuthProvider>
+      <SettingsProvider>
+        <AuthProvider>
+          <div className="min-h-screen flex w-full">
+            <BrowserRouter>
+              <Routes>
+                {/* Public routes */}
+                <Route path="/" element={<Index />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                
+                {/* Protected user routes */}
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/case/:caseId" element={
+                  <ProtectedRoute>
+                    <CaseDetail />
+                  </ProtectedRoute>
+                } />
+                
+                {/* Protected admin routes */}
+                <Route path="/admin" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/users" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AdminUsers />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/cases" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AdminCases />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/settings" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AdminSettings />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/logs" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AdminLogs />
+                  </ProtectedRoute>
+                } />
+                
+                {/* Catch all */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </div>
+        </AuthProvider>
+      </SettingsProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
