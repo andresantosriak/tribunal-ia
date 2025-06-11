@@ -1,18 +1,18 @@
 
-import { useState, useEffect } from 'react';
-import AdminLayout from '@/components/AdminLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { supabase } from '@/lib/supabase';
-import { Users, FileText, CheckCircle, Clock, TrendingUp, Calendar } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Shield, Settings, Users, BarChart, Database } from 'lucide-react';
+import Header from '@/components/Header';
+import CaseHistory from '@/components/dashboard/CaseHistory';
+import SupabaseDebugPanel from '@/components/debug/SupabaseDebugPanel';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useSupabaseData } from '@/hooks/useSupabaseData';
 
 interface Stats {
   totalUsers: number;
   totalCases: number;
   completedCases: number;
   processingCases: number;
-  casesToday: number;
-  casesThisWeek: number;
-  casesThisMonth: number;
 }
 
 const AdminDashboard = () => {
@@ -21,79 +21,20 @@ const AdminDashboard = () => {
     totalCases: 0,
     completedCases: 0,
     processingCases: 0,
-    casesToday: 0,
-    casesThisWeek: 0,
-    casesThisMonth: 0,
   });
-  const [loading, setLoading] = useState(true);
+
+  // Carregar estatísticas
+  const { data: users } = useSupabaseData({ table: 'usuarios' });
+  const { data: cases } = useSupabaseData({ table: 'casos' });
 
   useEffect(() => {
-    fetchStats();
-  }, []);
-
-  const fetchStats = async () => {
-    try {
-      // Total de usuários
-      const { count: totalUsers } = await supabase
-        .from('usuarios')
-        .select('*', { count: 'exact', head: true });
-
-      // Total de casos
-      const { count: totalCases } = await supabase
-        .from('casos')
-        .select('*', { count: 'exact', head: true });
-
-      // Casos concluídos
-      const { count: completedCases } = await supabase
-        .from('casos')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'concluido');
-
-      // Casos processando
-      const { count: processingCases } = await supabase
-        .from('casos')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'processando');
-
-      // Casos hoje
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const { count: casesToday } = await supabase
-        .from('casos')
-        .select('*', { count: 'exact', head: true })
-        .gte('created_at', today.toISOString());
-
-      // Casos esta semana
-      const weekAgo = new Date();
-      weekAgo.setDate(weekAgo.getDate() - 7);
-      const { count: casesThisWeek } = await supabase
-        .from('casos')
-        .select('*', { count: 'exact', head: true })
-        .gte('created_at', weekAgo.toISOString());
-
-      // Casos este mês
-      const monthAgo = new Date();
-      monthAgo.setMonth(monthAgo.getMonth() - 1);
-      const { count: casesThisMonth } = await supabase
-        .from('casos')
-        .select('*', { count: 'exact', head: true })
-        .gte('created_at', monthAgo.toISOString());
-
-      setStats({
-        totalUsers: totalUsers || 0,
-        totalCases: totalCases || 0,
-        completedCases: completedCases || 0,
-        processingCases: processingCases || 0,
-        casesToday: casesToday || 0,
-        casesThisWeek: casesThisWeek || 0,
-        casesThisMonth: casesThisMonth || 0,
-      });
-    } catch (error) {
-      console.error('Erro ao buscar estatísticas:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    setStats({
+      totalUsers: users.length,
+      totalCases: cases.length,
+      completedCases: cases.filter(c => c.status === 'concluido').length,
+      processingCases: cases.filter(c => c.status === 'processando').length,
+    });
+  }, [users, cases]);
 
   const StatCard = ({ 
     title, 
@@ -106,7 +47,7 @@ const AdminDashboard = () => {
     icon: any; 
     color?: string; 
   }) => (
-    <Card className="card-legal">
+    <Card>
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div>
@@ -119,22 +60,16 @@ const AdminDashboard = () => {
     </Card>
   );
 
-  if (loading) {
-    return (
-      <AdminLayout title="Dashboard">
-        <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-gray-600">Carregando estatísticas...</p>
-        </div>
-      </AdminLayout>
-    );
-  }
-
   return (
-    <AdminLayout title="Dashboard">
-      <div className="space-y-6">
-        {/* Estatísticas Gerais */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="min-h-screen bg-gray-50">
+      <Header 
+        title="Painel Administrativo" 
+        icon={<Shield className="h-8 w-8 text-red-600" />}
+      />
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+        {/* Estatísticas */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <StatCard
             title="Total de Usuários"
             value={stats.totalUsers}
@@ -144,88 +79,79 @@ const AdminDashboard = () => {
           <StatCard
             title="Total de Casos"
             value={stats.totalCases}
-            icon={FileText}
+            icon={BarChart}
             color="text-green-600"
           />
           <StatCard
             title="Casos Concluídos"
             value={stats.completedCases}
-            icon={CheckCircle}
+            icon={BarChart}
             color="text-green-600"
           />
           <StatCard
             title="Casos Processando"
             value={stats.processingCases}
-            icon={Clock}
+            icon={BarChart}
             color="text-yellow-600"
           />
         </div>
 
-        {/* Estatísticas por Tempo */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <StatCard
-            title="Casos Hoje"
-            value={stats.casesToday}
-            icon={Calendar}
-            color="text-primary"
-          />
-          <StatCard
-            title="Casos Esta Semana"
-            value={stats.casesThisWeek}
-            icon={TrendingUp}
-            color="text-primary"
-          />
-          <StatCard
-            title="Casos Este Mês"
-            value={stats.casesThisMonth}
-            icon={TrendingUp}
-            color="text-primary"
-          />
-        </div>
+        <Tabs defaultValue="cases" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 h-auto sm:h-10">
+            <TabsTrigger value="cases" className="text-xs sm:text-sm py-2">
+              <BarChart className="h-4 w-4 mr-1 sm:mr-2" />
+              Casos
+            </TabsTrigger>
+            <TabsTrigger value="users" className="text-xs sm:text-sm py-2">
+              <Users className="h-4 w-4 mr-1 sm:mr-2" />
+              Usuários
+            </TabsTrigger>
+            <TabsTrigger value="debug" className="text-xs sm:text-sm py-2">
+              <Database className="h-4 w-4 mr-1 sm:mr-2" />
+              Debug
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Atividade Recente */}
-        <Card className="card-legal">
-          <CardHeader>
-            <CardTitle>Atividade Recente</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-                <FileText className="h-5 w-5 text-primary" />
-                <div className="flex-1">
-                  <p className="font-medium">Sistema funcionando normalmente</p>
-                  <p className="text-sm text-gray-600">
-                    {stats.totalCases} casos processados até agora
+          <TabsContent value="cases">
+            <Card>
+              <CardHeader>
+                <CardTitle>Gerenciamento de Casos</CardTitle>
+                <CardDescription>
+                  Visualize e gerencie todos os casos do sistema
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <CaseHistory />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="users">
+            <Card>
+              <CardHeader>
+                <CardTitle>Gerenciamento de Usuários</CardTitle>
+                <CardDescription>
+                  Administre usuários e permissões do sistema
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg font-medium">Funcionalidade em desenvolvimento</p>
+                  <p className="text-sm text-muted-foreground">
+                    Total de usuários: {stats.totalUsers}
                   </p>
                 </div>
-              </div>
-              
-              <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-                <Users className="h-5 w-5 text-blue-600" />
-                <div className="flex-1">
-                  <p className="font-medium">{stats.totalUsers} usuários registrados</p>
-                  <p className="text-sm text-gray-600">
-                    Sistema de autenticação ativo
-                  </p>
-                </div>
-              </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-              {stats.processingCases > 0 && (
-                <div className="flex items-center space-x-4 p-4 bg-yellow-50 rounded-lg">
-                  <Clock className="h-5 w-5 text-yellow-600" />
-                  <div className="flex-1">
-                    <p className="font-medium">{stats.processingCases} casos em processamento</p>
-                    <p className="text-sm text-gray-600">
-                      Aguardando conclusão do webhook
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </AdminLayout>
+          <TabsContent value="debug">
+            <SupabaseDebugPanel />
+          </TabsContent>
+        </Tabs>
+      </main>
+    </div>
   );
 };
 
