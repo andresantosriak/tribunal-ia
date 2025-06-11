@@ -44,11 +44,16 @@ export const useCaseHistory = (userId?: string) => {
       }
 
       console.log('Casos carregados:', casesData);
-      setCases(casesData || []);
+      
+      // Ensure we always set an array
+      const validCases = Array.isArray(casesData) ? casesData : [];
+      setCases(validCases);
 
     } catch (err: any) {
       console.error('Erro ao carregar casos:', err);
       setError(err.message || 'Erro inesperado ao carregar casos');
+      // Set empty array on error to prevent rendering issues
+      setCases([]);
     } finally {
       setIsLoading(false);
     }

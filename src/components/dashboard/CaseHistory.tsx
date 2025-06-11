@@ -66,6 +66,23 @@ const CaseHistory = () => {
     }
   };
 
+  // Helper function to count cases by status
+  const getStatusCounts = () => {
+    const counts: Record<string, number> = {};
+    cases.forEach(c => {
+      counts[c.status] = (counts[c.status] || 0) + 1;
+    });
+    return counts;
+  };
+
+  // Helper function to format status counts for display
+  const formatStatusCounts = () => {
+    const counts = getStatusCounts();
+    return Object.entries(counts)
+      .map(([status, count]) => `${status}: ${count}`)
+      .join(', ');
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -172,11 +189,8 @@ const CaseHistory = () => {
           <p><strong>Debug Casos:</strong></p>
           <p>Loading: {isLoading ? 'Sim' : 'Não'}</p>
           <p>Erro: {error || 'Nenhum'}</p>
-          <p>Total casos: {cases.length}</p>
-          <p>Por status: {cases.reduce((acc, c) => {
-            acc[c.status] = (acc[c.status] || 0) + 1;
-            return acc;
-          }, {} as Record<string, number>)}</p>
+          <p>Total casos: {Array.isArray(cases) ? cases.length : 0}</p>
+          <p>Por status: {formatStatusCounts()}</p>
         </div>
       </CardContent>
     </Card>
