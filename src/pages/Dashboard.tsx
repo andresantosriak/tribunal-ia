@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import UserHeader from '@/components/UserHeader';
@@ -10,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
 import { FileText, Calendar, Send, Eye } from 'lucide-react';
-import { Link, Navigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 interface Caso {
   id: string;
@@ -22,110 +21,17 @@ interface Caso {
 }
 
 const Dashboard = () => {
-  const { userProfile, loading, refreshProfile } = useAuth();
+  const { userProfile, refreshProfile } = useAuth();
   const [petitionText, setPetitionText] = useState('');
-  const [submitLoading, setSubmitLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [casos, setCasos] = useState<Caso[]>([]);
   const [loadingCases, setLoadingCases] = useState(true);
 
   const maxPeticoes = 5; // This should come from system settings
   const peticionesRestantes = maxPeticoes - (userProfile?.peticoes_usadas || 0);
 
-  // Debug auth state
   useEffect(() => {
-    console.log('=== DASHBOARD DEBUG ===');
-    console.log('userProfile:', userProfile);
-    console.log('isLoading auth:', loading);
-    
-    // Verificar autenticação atual
-    const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      console.log('Current auth user:', user);
-    };
-    
-    checkAuth();
-  }, [userProfile, loading]);
-
-  // Debug function
-  const debugUserData = async () => {
-    console.log('=== DEBUG MANUAL ===');
-    
-    // Verificar sessão atual
-    const { data: { session } } = await supabase.auth.getSession();
-    console.log('Sessão atual:', session);
-    
-    // Verificar usuário atual
-    const { data: { user } } = await supabase.auth.getUser();
-    console.log('Usuário atual:', user);
-    
-    // Verificar se existe na tabela usuarios
-    if (user) {
-      const { data: profileById } = await supabase
-        .from('usuarios')
-        .select('*')
-        .eq('id', user.id);
-      console.log('Perfil por ID:', profileById);
-      
-      const { data: profileByEmail } = await supabase
-        .from('usuarios')
-        .select('*')
-        .eq('email', user.email);
-      console.log('Perfil por email:', profileByEmail);
-    }
-    
-    console.log('UserProfile do contexto:', userProfile);
-  };
-
-  const fetchCases = async () => {
-    if (!userProfile?.id) {
-      console.log('userProfile não disponível, não buscando casos');
-      return;
-    }
-
-    try {
-      setLoadingCases(true);
-      console.log('Buscando casos para usuário:', userProfile.id);
-      
-      const { data, error } = await supabase
-        .from('casos')
-        .select('*')
-        .eq('usuario_id', userProfile.id)  // CORRIGIDO: filtrar por usuário
-        .order('created_at', { ascending: false });
-
-      console.log('Casos encontrados:', data);
-
-      if (error) {
-        console.error('Erro ao buscar casos:', error);
-        throw error;
-      }
-      
-      const casesData: Caso[] = (data || []).map(caso => ({
-        id: caso.id.toString(),
-        caso_id: caso.caso_id,
-        texto_original: caso.texto_original,
-        status: caso.status || 'processando',
-        created_at: caso.created_at,
-        completed_at: caso.completed_at
-      }));
-      
-      setCasos(casesData);
-      console.log(`${casesData.length} casos carregados para o usuário`);
-    } catch (error) {
-      console.error('Error fetching cases:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar os casos",
-        variant: "destructive",
-      });
-    } finally {
-      setLoadingCases(false);
-    }
-  };
-
-  useEffect(() => {
-    if (userProfile?.id) {
-      fetchCases();
-    }
+    fetchCases();
   }, [userProfile]);
 
   // Real-time subscription for user cases
@@ -149,11 +55,48 @@ const Dashboard = () => {
     };
   }, [userProfile?.id]);
 
+  const fetchCases = async () => {
+    if (!userProfile) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('casos')
+        .select('*')
+        .eq('usuario_id', userProfile.id)  // Filter by current user
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      // Type assertion para garantir que o id seja string
+      const casesData: Caso[] = (data || []).map(caso => ({
+        id: caso.id.toString(),
+        caso_id: caso.caso_id,
+        texto_original: caso.texto_original,
+        status: caso.status || 'processando',
+        created_at: caso.created_at,
+        completed_at: caso.completed_at
+      }));
+      
+      setCasos(casesData);
+    } catch (error) {
+      console.error('Error fetching cases:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar os casos",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingCases(false);
+    }
+  };
+
   const handleSubmitPetition = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    console.log('=== ENVIANDO PETIÇÃO ===');
-    console.log('userProfile atual:', userProfile);
+    console.log('=== DEBUG INÍCIO ===');
+    console.log('userProfile:', userProfile);
+    console.log('petitionText:', petitionText);
+    console.log('peticionesRestantes:', peticionesRestantes);
     
     if (!petitionText.trim()) {
       toast({
@@ -166,7 +109,7 @@ const Dashboard = () => {
 
     if (peticionesRestantes <= 0) {
       toast({
-        title: "Limite atingido",
+        title: "Limite atingido", 
         description: "Você atingiu o limite de petições",
         variant: "destructive",
       });
@@ -174,6 +117,7 @@ const Dashboard = () => {
     }
 
     if (!userProfile?.id) {
+      console.error('User profile ID missing');
       toast({
         title: "Erro de autenticação",
         description: "Usuário não identificado. Faça login novamente.",
@@ -182,14 +126,28 @@ const Dashboard = () => {
       return;
     }
 
-    setSubmitLoading(true);
+    setLoading(true);
 
     try {
-      // 1. Gerar ID único do caso
-      const casoId = `CASO_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      console.log('ID do caso gerado:', casoId);
+      console.log('=== STEP 0: Verify user exists ===');
+      // Verificar se usuário existe na tabela usuarios
+      const { data: userExists, error: userCheckError } = await supabase
+        .from('usuarios')
+        .select('id, peticoes_usadas')
+        .eq('id', userProfile.id)
+        .single();
 
-      // 2. Inserir caso na tabela casos
+      console.log('User check result:', { userExists, userCheckError });
+
+      if (userCheckError || !userExists) {
+        throw new Error('Usuário não encontrado na base de dados');
+      }
+
+      console.log('=== STEP 1: Generate casoId ===');
+      const casoId = `CASO_${Date.now()}`;
+      console.log('Generated casoId:', casoId);
+
+      console.log('=== STEP 2: Insert case ===');
       const { data: insertData, error: caseError } = await supabase
         .from('casos')
         .insert([
@@ -197,68 +155,66 @@ const Dashboard = () => {
             caso_id: casoId,
             texto_original: petitionText,
             status: 'processando',
-            usuario_id: userProfile.id  // CORRIGIDO: usar userProfile.id
+            usuario_id: userProfile.id
           }
         ])
-        .select()
-        .single();
+        .select();
 
-      console.log('Caso inserido no banco:', insertData);
+      console.log('Insert result:', { insertData, caseError });
 
       if (caseError) {
-        console.error('Erro ao inserir caso:', caseError);
-        throw new Error(`Erro ao salvar caso: ${caseError.message}`);
+        console.error('Case insert error:', caseError);
+        throw new Error(`Erro ao inserir caso: ${caseError.message}`);
       }
 
-      // 3. Atualizar contador de petições do usuário
-      const { error: userError } = await supabase
+      console.log('=== STEP 3: Update user petition count ===');
+      const { data: updateData, error: userError } = await supabase
         .from('usuarios')
-        .update({ 
-          peticoes_usadas: (userProfile.peticoes_usadas || 0) + 1,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', userProfile.id);
+        .update({ peticoes_usadas: (userProfile?.peticoes_usadas || 0) + 1 })
+        .eq('id', userProfile.id)
+        .select();
+
+      console.log('Update result:', { updateData, userError });
 
       if (userError) {
-        console.error('Erro ao atualizar usuário:', userError);
-        throw new Error(`Erro ao atualizar contador: ${userError.message}`);
+        console.error('User update error:', userError);
+        throw new Error(`Erro ao atualizar usuário: ${userError.message}`);
       }
 
-      // 4. Buscar configuração do webhook
+      console.log('=== STEP 4: Fetch webhook config ===');
       const { data: config, error: configError } = await supabase
         .from('configuracoes')
         .select('webhook_url')
         .single();
 
-      console.log('Configuração do webhook:', { config, configError });
+      console.log('Config result:', { config, configError });
 
-      // 5. Enviar webhook se configurado
-      if (config?.webhook_url && config.webhook_url.trim()) {
+      if (configError && configError.code !== 'PGRST116') {
+        console.error('Config fetch error:', configError);
+        // Não falhar por causa de config, apenas avisar
+      }
+
+      console.log('=== STEP 5: Send webhook ===');
+      if (config?.webhook_url) {
         try {
-          console.log('Enviando webhook para:', config.webhook_url);
-          
-          const webhookPayload = {
-            texto: petitionText  // FORMATO CORRETO SOLICITADO
-          };
-          
-          console.log('Payload do webhook:', webhookPayload);
+          console.log('Sending webhook to:', config.webhook_url);
+          console.log('Webhook payload:', { texto: petitionText });
           
           const response = await fetch(config.webhook_url, {
             method: 'POST',
-            headers: { 
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(webhookPayload)
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              texto: petitionText
+            })
           });
           
-          console.log('Resposta do webhook:', response.status, response.statusText);
+          console.log('Webhook response status:', response.status);
+          console.log('Webhook response ok:', response.ok);
           
           if (!response.ok) {
-            throw new Error(`Webhook retornou status ${response.status}`);
+            throw new Error(`Webhook failed: ${response.status}`);
           }
-          
           console.log('Webhook enviado com sucesso');
-          
         } catch (webhookError) {
           console.error('Erro no webhook:', webhookError);
           toast({
@@ -270,16 +226,16 @@ const Dashboard = () => {
       } else {
         console.warn('Webhook URL não configurada');
         toast({
-          title: "Aviso",
-          description: "Petição salva. Configure o webhook nas configurações administrativas.",
+          title: "Aviso", 
+          description: "Petição salva, mas webhook não está configurado",
           variant: "default",
         });
       }
 
-      // 6. Sucesso
+      console.log('=== SUCCESS ===');
       toast({
-        title: "Petição enviada com sucesso!",
-        description: `Caso ${casoId} será processado em breve`,
+        title: "Petição enviada!",
+        description: "Seu caso será processado em breve",
       });
 
       setPetitionText('');
@@ -287,14 +243,19 @@ const Dashboard = () => {
       await fetchCases();
       
     } catch (error) {
-      console.error('Erro geral ao enviar petição:', error);
+      console.error('=== ERRO GERAL ===');
+      console.error('Error details:', error);
+      console.error('Error message:', error instanceof Error ? error.message : 'Unknown error');
+      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack');
+      
       toast({
         title: "Erro",
         description: error instanceof Error ? error.message : "Não foi possível enviar a petição",
         variant: "destructive",
       });
     } finally {
-      setSubmitLoading(false);
+      setLoading(false);
+      console.log('=== DEBUG FIM ===');
     }
   };
 
@@ -319,44 +280,11 @@ const Dashboard = () => {
     });
   };
 
-  // Show loading while auth is checking
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-gray-600">Carregando...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show login prompt if not authenticated
-  if (!userProfile) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">Usuário não autenticado</p>
-          <Link to="/login">
-            <Button>Fazer Login</Button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
       <UserHeader />
       
       <div className="container mx-auto px-4 py-8">
-        {/* Debug Buttons */}
-        <div className="mb-4 space-x-2">
-          <Button onClick={debugUserData} variant="outline">
-            DEBUG DADOS USUÁRIO
-          </Button>
-        </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* New Petition Form */}
           <div className="lg:col-span-2">
@@ -386,9 +314,9 @@ const Dashboard = () => {
                     <Button 
                       type="submit" 
                       className="btn-legal"
-                      disabled={submitLoading || peticionesRestantes <= 0}
+                      disabled={loading || peticionesRestantes <= 0}
                     >
-                      {submitLoading ? 'Enviando...' : 'Enviar para Análise'}
+                      {loading ? 'Enviando...' : 'Enviar para Análise'}
                     </Button>
                   </div>
                 </form>
