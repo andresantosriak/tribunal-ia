@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import UserHeader from '@/components/UserHeader';
@@ -9,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
 import { FileText, Calendar, Send, Eye } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 
 interface Caso {
   id: string;
@@ -21,17 +22,34 @@ interface Caso {
 }
 
 const Dashboard = () => {
-  const { userProfile, refreshProfile } = useAuth();
+  const { userProfile, loading, refreshProfile } = useAuth();
   const [petitionText, setPetitionText] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
   const [casos, setCasos] = useState<Caso[]>([]);
   const [loadingCases, setLoadingCases] = useState(true);
 
   const maxPeticoes = 5; // This should come from system settings
   const peticionesRestantes = maxPeticoes - (userProfile?.peticoes_usadas || 0);
 
+  // Debug auth state
   useEffect(() => {
-    fetchCases();
+    console.log('=== DASHBOARD DEBUG ===');
+    console.log('userProfile:', userProfile);
+    console.log('isLoading auth:', loading);
+    
+    // Verificar autenticação atual
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log('Current auth user:', user);
+    };
+    
+    checkAuth();
+  }, [userProfile, loading]);
+
+  useEffect(() => {
+    if (userProfile?.id) {
+      fetchCases();
+    }
   }, [userProfile]);
 
   // Real-time subscription for user cases
@@ -55,19 +73,37 @@ const Dashboard = () => {
     };
   }, [userProfile?.id]);
 
+  // Debug auth function
+  const debugAuth = async () => {
+    console.log('=== DEBUG AUTH MANUAL ===');
+    
+    const { data: { user } } = await supabase.auth.getUser();
+    console.log('Current user:', user);
+    
+    if (user) {
+      const { data: profile } = await supabase
+        .from('usuarios')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      console.log('Profile in DB:', profile);
+    }
+    
+    console.log('UserProfile from context:', userProfile);
+  };
+
   const fetchCases = async () => {
-    if (!userProfile) return;
+    if (!userProfile?.id) return;
 
     try {
       const { data, error } = await supabase
         .from('casos')
         .select('*')
-        .eq('usuario_id', userProfile.id)  // Filter by current user
+        .eq('usuario_id', userProfile.id)  
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       
-      // Type assertion para garantir que o id seja string
       const casesData: Caso[] = (data || []).map(caso => ({
         id: caso.id.toString(),
         caso_id: caso.caso_id,
@@ -126,7 +162,7 @@ const Dashboard = () => {
       return;
     }
 
-    setLoading(true);
+    setSubmitLoading(true);
 
     try {
       console.log('=== STEP 0: Verify user exists ===');
@@ -254,7 +290,7 @@ const Dashboard = () => {
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      setSubmitLoading(false);
       console.log('=== DEBUG FIM ===');
     }
   };
@@ -280,11 +316,44 @@ const Dashboard = () => {
     });
   };
 
+  // Show loading while auth is checking
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-gray-600">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login prompt if not authenticated
+  if (!userProfile) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">Usuário não autenticado</p>
+          <Link to="/login">
+            <Button>Fazer Login</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <UserHeader />
       
       <div className="container mx-auto px-4 py-8">
+        {/* Debug Button - Remove after fixing */}
+        <div className="mb-4">
+          <Button onClick={debugAuth} variant="outline">
+            DEBUG AUTH
+          </Button>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* New Petition Form */}
           <div className="lg:col-span-2">
@@ -314,9 +383,9 @@ const Dashboard = () => {
                     <Button 
                       type="submit" 
                       className="btn-legal"
-                      disabled={loading || peticionesRestantes <= 0}
+                      disabled={submitLoading || peticionesRestantes <= 0}
                     >
-                      {loading ? 'Enviando...' : 'Enviar para Análise'}
+                      {submitLoading ? 'Enviando...' : 'Enviar para Análise'}
                     </Button>
                   </div>
                 </form>
