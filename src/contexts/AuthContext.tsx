@@ -30,15 +30,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   const fetchUserProfile = async () => {
-    console.log('=== FETCH USER PROFILE ===');
+    console.log('=== FETCH USER PROFILE INICIADO ===');
     
     try {
       const { data: { user }, error: userError } = await supabase.auth.getUser();
-      console.log('Auth user:', user);
-      console.log('Auth error:', userError);
+      console.log('Usuário do auth:', user);
+      console.log('Erro do auth:', userError);
 
       if (userError || !user) {
-        console.log('No authenticated user found');
+        console.log('Nenhum usuário autenticado');
         setUser(null);
         setUserProfile(null);
         setSession(null);
@@ -46,32 +46,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      console.log('User email:', user.email);
-      console.log('User ID:', user.id);
+      console.log('Email do usuário:', user.email);
+      console.log('ID do usuário:', user.id);
 
-      // Buscar perfil na tabela usuarios
+      // Buscar perfil na tabela usuarios usando ID do auth
       const { data: profile, error: profileError } = await supabase
         .from('usuarios')
         .select('*')
-        .eq('id', user.id)
+        .eq('id', user.id)  // Buscar por ID, não email
         .single();
 
-      console.log('Profile from DB:', profile);
-      console.log('Profile error:', profileError);
+      console.log('Resultado da busca do perfil:', { profile, profileError });
 
-      if (profileError && profileError.code !== 'PGRST116') {
-        console.error('Error fetching user profile:', profileError);
-        setUserProfile(null);
-      } else if (!profile) {
-        console.log('Profile not found, creating...');
-        // Criar perfil se não existir
+      if (profileError && profileError.code === 'PGRST116') {
+        // Perfil não existe, criar automaticamente
+        console.log('Perfil não encontrado, criando novo...');
+        
+        const nome = user.user_metadata?.name || 
+                    user.user_metadata?.full_name || 
+                    user.email?.split('@')[0] || 
+                    'Usuário';
+
         const { data: newProfile, error: createError } = await supabase
           .from('usuarios')
           .insert([
             {
               id: user.id,
-              email: user.email,
-              nome: user.email.split('@')[0], // Nome baseado no email
+              email: user.email!,
+              nome: nome,
               tipo_usuario: 'usuario',
               peticoes_usadas: 0
             }
@@ -79,17 +81,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .select()
           .single();
 
-        console.log('New profile created:', newProfile);
-        console.log('Create error:', createError);
+        console.log('Novo perfil criado:', newProfile);
+        console.log('Erro ao criar perfil:', createError);
 
         if (createError) {
-          console.error('Error creating profile:', createError);
-          setUserProfile(null);
+          console.error('ERRO: Não foi possível criar perfil:', createError);
+          // Tentar buscar novamente por email como fallback
+          const { data: existingProfile } = await supabase
+            .from('usuarios')
+            .select('*')
+            .eq('email', user.email)
+            .single();
+          
+          if (existingProfile) {
+            console.log('Perfil encontrado por email:', existingProfile);
+            setUserProfile(existingProfile);
+          } else {
+            setUserProfile(null);
+          }
         } else {
           setUserProfile(newProfile);
         }
+      } else if (profileError) {
+        console.error('ERRO: Erro inesperado ao buscar perfil:', profileError);
+        setUserProfile(null);
       } else {
-        console.log('Setting profile:', profile);
+        console.log('Perfil encontrado e carregado:', profile);
         setUserProfile(profile);
       }
 
@@ -97,11 +114,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(user);
       setSession({ user });
     } catch (error) {
-      console.error('Auth context error:', error);
+      console.error('ERRO GERAL no fetchUserProfile:', error);
       setUser(null);
       setUserProfile(null);
       setSession(null);
     } finally {
+      console.log('=== FETCH USER PROFILE FINALIZADO ===');
       setLoading(false);
     }
   };

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import UserHeader from '@/components/UserHeader';
@@ -46,6 +45,36 @@ const Dashboard = () => {
     checkAuth();
   }, [userProfile, loading]);
 
+  // Debug function
+  const debugUserData = async () => {
+    console.log('=== DEBUG MANUAL ===');
+    
+    // Verificar sessão atual
+    const { data: { session } } = await supabase.auth.getSession();
+    console.log('Sessão atual:', session);
+    
+    // Verificar usuário atual
+    const { data: { user } } = await supabase.auth.getUser();
+    console.log('Usuário atual:', user);
+    
+    // Verificar se existe na tabela usuarios
+    if (user) {
+      const { data: profileById } = await supabase
+        .from('usuarios')
+        .select('*')
+        .eq('id', user.id);
+      console.log('Perfil por ID:', profileById);
+      
+      const { data: profileByEmail } = await supabase
+        .from('usuarios')
+        .select('*')
+        .eq('email', user.email);
+      console.log('Perfil por email:', profileByEmail);
+    }
+    
+    console.log('UserProfile do contexto:', userProfile);
+  };
+
   useEffect(() => {
     if (userProfile?.id) {
       fetchCases();
@@ -72,25 +101,6 @@ const Dashboard = () => {
       casosSubscription.unsubscribe();
     };
   }, [userProfile?.id]);
-
-  // Debug auth function
-  const debugAuth = async () => {
-    console.log('=== DEBUG AUTH MANUAL ===');
-    
-    const { data: { user } } = await supabase.auth.getUser();
-    console.log('Current user:', user);
-    
-    if (user) {
-      const { data: profile } = await supabase
-        .from('usuarios')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-      console.log('Profile in DB:', profile);
-    }
-    
-    console.log('UserProfile from context:', userProfile);
-  };
 
   const fetchCases = async () => {
     if (!userProfile?.id) return;
@@ -347,10 +357,10 @@ const Dashboard = () => {
       <UserHeader />
       
       <div className="container mx-auto px-4 py-8">
-        {/* Debug Button - Remove after fixing */}
-        <div className="mb-4">
-          <Button onClick={debugAuth} variant="outline">
-            DEBUG AUTH
+        {/* Debug Buttons */}
+        <div className="mb-4 space-x-2">
+          <Button onClick={debugUserData} variant="outline">
+            DEBUG DADOS USUÁRIO
           </Button>
         </div>
 
